@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculator App</title>
+<style>
+*{box-sizing:border-box;margin:0}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0F1726;font-family:system-ui,sans-serif;padding:16px}
+.calc{width:100%;max-width:340px;background:#18233A;border-radius:20px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.screen{background:#0F1726;border-radius:12px;padding:14px;margin-bottom:14px;text-align:right;min-height:84px;overflow:hidden}
+.expr{color:#A5B3C6;font-size:1rem;min-height:22px;word-break:break-all}
+.out{color:#EAF0F6;font-size:2.2rem;font-weight:700;word-break:break-all}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+button{height:60px;border:0;border-radius:14px;font-size:1.3rem;font-weight:600;background:#2A3853;color:#EAF0F6;cursor:pointer}
+button:active{transform:scale(.96)}
+button:focus-visible{outline:3px solid #FF6AA2}
+.op{background:#0F7F82}
+.eq{background:#D62E73}
+.clr{background:#8B3A55}
+.zero{grid-column:span 2}
+</style>
+</head>
+<body>
+<main class="calc" aria-label="Calculator">
+  <div class="screen"><div class="expr" id="expr"></div><div class="out" id="out">0</div></div>
+  <div class="keys" id="keys">
+    <button class="clr" data-k="C">C</button>
+    <button class="clr" data-k="B">⌫</button>
+    <button class="op" data-k="%">%</button>
+    <button class="op" data-k="/">÷</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+    <button class="op" data-k="*">×</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+    <button class="op" data-k="-">−</button>
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+    <button class="op" data-k="+">+</button>
+    <button class="zero" data-k="0">0</button>
+    <button data-k=".">.</button>
+    <button class="eq" data-k="=">=</button>
+  </div>
+</main>
+<script>
+var cur="0",expr="",prev=null,op=null,fresh=false;
+var out=document.getElementById("out"),ex=document.getElementById("expr");
+var sym={"+":"+","-":"−","*":"×","/":"÷"};
+function show(){out.textContent=cur;ex.textContent=expr;}
+function calc(a,b,o){
+  if(o==="+")return a+b;
+  if(o==="-")return a-b;
+  if(o==="*")return a*b;
+  if(o==="/")return b===0?"Error":a/b;
+}
+function fmt(n){return n==="Error"?n:String(parseFloat(n.toFixed(10)));}
+document.getElementById("keys").addEventListener("click",function(e){
+  var k=e.target.getAttribute("data-k");
+  if(!k)return;
+  if(cur==="Error"&&k!=="C"){cur="0";}
+  if(k>="0"&&k<="9"){
+    cur=(cur==="0"||fresh)?k:cur+k;fresh=false;
+  }else if(k==="."){
+    if(fresh){cur="0.";fresh=false;}else if(cur.indexOf(".")<0)cur+=".";
+  }else if(k==="C"){
+    cur="0";expr="";prev=null;op=null;fresh=false;
+  }else if(k==="B"){
+    cur=cur.length>1?cur.slice(0,-1):"0";
+  }else if(k==="%"){
+    cur=fmt(parseFloat(cur)/100);
+  }else if(k==="="){
+    if(op!==null){
+      var r=calc(prev,parseFloat(cur),op);
+      expr=expr+" "+cur+" =";
+      cur=fmt(r);prev=null;op=null;fresh=true;
+    }
+  }else{
+    if(op!==null&&!fresh){
+      var r2=calc(prev,parseFloat(cur),op);
+      prev=r2==="Error"?0:r2;cur=fmt(r2);
+    }else{prev=parseFloat(cur);}
+    op=k;expr=fmt(prev)+" "+sym[k];fresh=true;
+  }
+  show();
+});
+</script>
+</body>
+</html>
